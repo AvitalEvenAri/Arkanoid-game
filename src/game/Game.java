@@ -1,4 +1,9 @@
 package game;
+import animation.Animation;
+import animation.AnimationRunner;
+import animation.PauseScreen;
+import biuoop.DrawSurface;
+import biuoop.KeyboardSensor;
 
 import biuoop.GUI;
 import biuoop.DrawSurface;
@@ -27,7 +32,7 @@ import listeners.BlockRemover;
  * Holds the sprites and the collidables, creates the GUI,
  * initializes the game objects, and runs the main game loop.
  */
-public class Game {
+public class Game implements Animation {
 
     // ---- Fields ----
     private SpriteCollection sprites;
@@ -39,6 +44,9 @@ public class Game {
     private Counter remainingBalls;
     // counts how many points the player has
     private Counter score;
+    private AnimationRunner runner;
+    private KeyboardSensor keyboard;
+    private boolean running;
 
 
     // ---- Constructor ----
@@ -50,10 +58,23 @@ public class Game {
     public Game() {
         this.sprites = new SpriteCollection();
         this.environment = new GameEnvironment();
+
+        // Create the window (GUI)
         this.gui = new GUI("Arkanoid - Ass2", 800, 600);
+
+        // Keyboard comes from the GUI
+        this.keyboard = this.gui.getKeyboardSensor();
+
+        // Runner is responsible for the animation loop
+        this.runner = new AnimationRunner(this.gui, 60);
+
+        // Your existing Sleeper can stay, but will no longer be used in the main loop
         this.sleeper = new Sleeper();
+
+        // Counters
         this.remainingBlocks = new Counter(0);
     }
+
 
     // ---- Adding game objects ----
 
@@ -159,7 +180,6 @@ public class Game {
         }
 
         // 4) Create the paddle at the bottom center
-        KeyboardSensor keyboard = this.gui.getKeyboardSensor();
         int paddleWidth = 80;
         int paddleHeight = 15;
         int paddleX = (800 - paddleWidth) / 2;
@@ -170,15 +190,18 @@ public class Game {
                 paddleWidth,
                 paddleHeight
         );
+
         Paddle paddle = new Paddle(
                 paddleRect,
                 Color.ORANGE,
-                keyboard,
+                this.keyboard, // USE the field, not a new KeyboardSensor
                 7,      // paddle speed
                 20,     // left limit (do not enter left wall)
                 780     // right limit (800 - 20 for the right wall)
         );
+
         paddle.addToGame(this);
+
 
         // 5) Create THREE balls in the middle of the screen
         Ball ball1 = new Ball(400, 300, 7, Color.WHITE);
@@ -216,48 +239,15 @@ public class Game {
 
     /** Run the game -- start the animation loop. */
     public void run() {
-        int framesPerSecond = 60;
-        int millisecondsPerFrame = 1000 / framesPerSecond;
+        // 1) Run countdown before the turn starts (3..2..1 over 2 seconds)
+        this.runner.run(new animation.CountdownAnimation(2.0, 3, this.sprites));
 
-        while (true) {
-            long startTime = System.currentTimeMillis();
-
-            DrawSurface d = gui.getDrawSurface();
-
-            // blue background
-            d.setColor(new Color(0, 0, 150));
-            d.fillRectangle(0, 0, 800, 600);
-
-            // draw sprites on top
-            this.sprites.drawAllOn(d);
-
-            gui.show(d);
-
-            // update all sprites (move balls, paddle, etc.)
-            this.sprites.notifyAllTimePassed();
-
-            // ---- NEW: check end conditions ----
-            if (this.remainingBlocks.getValue() == 0) {
-                // bonus for clearing the level
-                this.score.increase(100);
-                this.gui.close();
-                return;
-            }
-
-            if (this.remainingBalls.getValue() == 0) {
-                // no more balls: game over
-                this.gui.close();
-                return;
-            }
-            // -----------------------------------
-
-            long usedTime = System.currentTimeMillis() - startTime;
-            long milliSecondLeftToSleep = millisecondsPerFrame - usedTime;
-            if (milliSecondLeftToSleep > 0) {
-                sleeper.sleepFor(milliSecondLeftToSleep);
-            }
-        }
+        // 2) Now run the actual game animation
+        this.running = true;
+        this.runner.run(this);
     }
+
+
 
     public void removeSprite(Sprite s) {
         this.sprites.removeSprite(s);
@@ -266,6 +256,38 @@ public class Game {
         this.environment.removeCollidable(c);
     }
 
+    @Override
+    public boolean shouldStop() {
+        return !this.running;
+    }
+
+    @Override
+    public void doOneFrame(DrawSurface d) {
+        // 1) אם לחצו P -> להיכנס למסך Pause (עד שלוחצים Space)
+        if (this.keyboard.isPressed("p") || this.keyboard.isPressed("פ")) {
+            this.runner.run(new PauseScreen(this.keyboard));
+        }
+
+
+
+        // 2) Background (blue)
+        d.setColor(new Color(0, 0, 150));   // dark blue
+        d.fillRectangle(0, 0, 800, 600);
+
+
+        // 3) לצייר את כל הספרייטים
+        this.sprites.drawAllOn(d);
+
+        // 4) לעדכן את כל הספרייטים (תנועה, התנגשות וכו')
+        this.sprites.notifyAllTimePassed();
+
+        // 5) תנאי עצירה (חלק 1+2 אצלך כבר קיים דרך counters)
+        // אם אין בלוקים או אין כדורים - לעצור ולסגור חלון
+        if (this.remainingBlocks.getValue() == 0 || this.remainingBalls.getValue() == 0) {
+            this.running = false;
+            this.gui.close();
+        }
+    }
 
 
 
