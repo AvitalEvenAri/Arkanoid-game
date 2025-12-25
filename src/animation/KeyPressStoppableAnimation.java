@@ -3,37 +3,47 @@ package animation;
 import biuoop.DrawSurface;
 import biuoop.KeyboardSensor;
 
+/**
+ * A decorator Animation that stops when a specific key is pressed.
+ * Fixes the "same press closes next animation" bug using isAlreadyPressed.
+ */
 public class KeyPressStoppableAnimation implements Animation {
-    private final KeyboardSensor keyboard;
+
+    private final KeyboardSensor sensor;
     private final String key;
     private final Animation animation;
+
     private boolean stop;
     private boolean isAlreadyPressed;
 
-    public KeyPressStoppableAnimation(KeyboardSensor keyboard, String key, Animation animation) {
-        this.keyboard = keyboard;
+    public KeyPressStoppableAnimation(KeyboardSensor sensor, String key, Animation animation) {
+        this.sensor = sensor;
         this.key = key;
         this.animation = animation;
-        this.stop = false;
 
-        // חשוב: אם המקש כבר לחוץ כשנכנסים למסך, לא נסגור מיד.
-        this.isAlreadyPressed = true;
+        this.stop = false;
+        this.isAlreadyPressed = true; // critical bug-fix: ignore key if it was already down
     }
 
     @Override
     public void doOneFrame(DrawSurface d) {
-        // קודם מציירים את האנימציה המקורית (EndScreen וכו')
+        // 1) draw the wrapped animation
         this.animation.doOneFrame(d);
 
-        // אם המקש לא לחוץ עכשיו -> אפשר "להפעיל" את האפשרות לעצור
-        if (!this.keyboard.isPressed(this.key)) {
+        // 2) bug fix logic:
+        // if key is currently NOT pressed, we can allow stopping on next press
+        if (!this.sensor.isPressed(this.key)) {
             this.isAlreadyPressed = false;
+            return;
         }
 
-        // אם המקש לחוץ, ורק אחרי שהוא שוחרר פעם אחת -> לעצור
-        if (!this.isAlreadyPressed && this.keyboard.isPressed(this.key)) {
-            this.stop = true;
+        // 3) if key is pressed but it was already pressed when animation started -> ignore
+        if (this.isAlreadyPressed) {
+            return;
         }
+
+        // 4) key is pressed AND it was not pressed earlier during this animation -> stop
+        this.stop = true;
     }
 
     @Override

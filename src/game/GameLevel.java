@@ -175,7 +175,11 @@ public class GameLevel implements Animation {
     public void doOneFrame(DrawSurface d) {
         // Pause (support English/Hebrew key)
         if (this.keyboard.isPressed("p") || this.keyboard.isPressed("פ")) {
-            this.runner.run(new PauseScreen(this.keyboard));
+            this.runner.run(new animation.KeyPressStoppableAnimation(
+                    this.keyboard,
+                    biuoop.KeyboardSensor.SPACE_KEY,
+                    new animation.PauseScreen()
+            ));
         }
 
         // Draw and update

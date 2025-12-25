@@ -1,31 +1,24 @@
 package animation;
 
 import biuoop.DrawSurface;
-import biuoop.KeyboardSensor;
 
-import java.awt.Color;
-
+/**
+ * Pause screen: draws "paused" forever.
+ * Stopping is handled by KeyPressStoppableAnimation.
+ */
 public class PauseScreen implements Animation {
-    private KeyboardSensor keyboard;
-    private boolean stop;
 
-    public PauseScreen(KeyboardSensor keyboard) {
-        this.keyboard = keyboard;
-        this.stop = false;
+    public PauseScreen() {
+        // no fields needed
     }
 
     @Override
     public void doOneFrame(DrawSurface d) {
-        d.setColor(Color.BLACK);
-        d.drawText(200, 300, "Paused -- press SPACE to continue", 28);
-
-        if (this.keyboard.isPressed(KeyboardSensor.SPACE_KEY)) {
-            this.stop = true;
-        }
+        d.drawText(10, d.getHeight() / 2, "paused -- press space to continue", 32);
     }
 
     @Override
     public boolean shouldStop() {
-        return this.stop;
+        return false; // runs forever, decorator stops it
     }
 }
