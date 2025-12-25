@@ -2,7 +2,7 @@ package sprites;
 
 import biuoop.DrawSurface;
 import collision.Collidable;
-import game.Game;
+import game.GameLevel;
 import geometry.Point;
 import geometry.Rectangle;
 import geometry.Velocity;
@@ -92,14 +92,14 @@ public class Block implements Collidable, Sprite, HitNotifier {
         // Currently does nothing
     }
 
-    public void addToGame(Game g) {
+    public void addToGame(GameLevel g) {
         g.addSprite(this);
         g.addCollidable(this);
     }
 
-    public void removeFromGame(Game game) {
-        game.removeSprite(this);
-        game.removeCollidable(this);
+    public void removeFromGame(GameLevel gameLevel) {
+        gameLevel.removeSprite(this);
+        gameLevel.removeCollidable(this);
     }
 
     @Override

@@ -4,19 +4,14 @@ import biuoop.DrawSurface;
 import collision.Collidable;
 import collision.CollisionInfo;
 import collision.GameEnvironment;
-import game.Game;
+import game.GameLevel;
 import geometry.Line;
 import geometry.Velocity;
 
-import biuoop.DrawSurface;
 import java.awt.Color;
 
 // from other packages
 import geometry.Point;
-import collision.CollisionInfo;
-import collision.GameEnvironment;
-import collision.Collidable;
-import java.awt.*;
 
 public class Ball implements Sprite {
     // === Fields ===
@@ -204,16 +199,16 @@ public class Ball implements Sprite {
         this.velocity = new Velocity(dx, dy);
     }
 
-    public void addToGame(Game g) {
+    public void addToGame(GameLevel g) {
         g.addSprite(this);
     }
     /**
-     * Remove this ball from the given game.
+     * Remove this ball from the given gameLevel.
      *
-     * @param game the game from which the ball should be removed.
+     * @param gameLevel the gameLevel from which the ball should be removed.
      */
-    public void removeFromGame(Game game) {
-        game.removeSprite(this);
+    public void removeFromGame(GameLevel gameLevel) {
+        gameLevel.removeSprite(this);
     }
 
 

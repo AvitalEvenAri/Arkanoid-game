@@ -56,7 +56,7 @@ public class CountdownAnimation implements Animation {
         }
 
         // 5) Draw the countdown number on top
-        d.setColor(Color.WHITE);
+        d.setColor(Color.PINK);
         d.drawText(390, 320, Integer.toString(currentNumber), 80);
     }
 

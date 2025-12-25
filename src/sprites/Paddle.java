@@ -2,21 +2,15 @@ package sprites;
 
 import biuoop.DrawSurface;
 import biuoop.KeyboardSensor;
+import game.GameLevel;
 import geometry.Point;
 import geometry.Rectangle;
 
-import java.awt.Color;
-
-import biuoop.DrawSurface;
-import biuoop.KeyboardSensor;
 import java.awt.Color;
 
 // from other packages
-import geometry.Point;
-import geometry.Rectangle;
 import geometry.Velocity;
 import collision.Collidable;
-import game.Game;
 
 /**
  * sprites.Paddle: the player-controlled bar at the bottom.
@@ -191,7 +185,7 @@ public class Paddle implements Sprite, Collidable {
 
     // --- helper to add paddle to game ---
 
-    public void addToGame(Game g) {
+    public void addToGame(GameLevel g) {
         g.addSprite(this);
         g.addCollidable(this);
     }
