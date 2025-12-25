@@ -17,23 +17,31 @@ public class GameFlow {
         this.score = new Counter(0);
     }
 
+    public Counter getScore() {
+        return this.score;
+    }
+
     public void runLevels(List<LevelInformation> levels) {
         for (LevelInformation info : levels) {
+
+            // 1) create level
             GameLevel level = new GameLevel(info, this.keyboard, this.runner, this.score);
+
+            // 2) build objects according to level
             level.initialize();
 
-            // run the level (one turn) until cleared or lost
-            while (level.getRemainingBlocks() > 0 && level.getRemainingBalls() > 0) {
-                level.run();
-            }
+            // 3) run the level ONCE (GameLevel.run() already loops internally until stop)
+            level.run();
 
-            // if lost (no balls) -> stop whole game
+            // 4) if lost (no balls) -> end whole game
             if (level.getRemainingBalls() == 0) {
-                // later: show Game Over screen
+                // TODO later: show Game Over screen
                 return;
             }
+
+            // 5) else: cleared blocks -> for-loop continues to next level
         }
 
-        // later: show You Win screen
+        // TODO later: show You Win screen
     }
 }
