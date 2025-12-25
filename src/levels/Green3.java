@@ -12,6 +12,9 @@ import java.util.List;
 
 public class Green3 implements LevelInformation {
 
+    private static final int WIDTH = 800;
+    private static final int HEIGHT = 600;
+
     @Override
     public int numberOfBalls() {
         return 2;
@@ -20,8 +23,11 @@ public class Green3 implements LevelInformation {
     @Override
     public List<Velocity> initialBallVelocities() {
         List<Velocity> v = new ArrayList<>();
-        v.add(new Velocity(3, -4));
-        v.add(new Velocity(-3, -4));
+
+        // שני כדורים בזוויות נגדיות (סטנדרטי לשלב הזה)
+        v.add(Velocity.fromAngleAndSpeed(-30, 6));
+        v.add(Velocity.fromAngleAndSpeed(30, 6));
+
         return v;
     }
 
@@ -32,7 +38,7 @@ public class Green3 implements LevelInformation {
 
     @Override
     public int paddleWidth() {
-        return 100;
+        return 80;
     }
 
     @Override
@@ -42,36 +48,42 @@ public class Green3 implements LevelInformation {
 
     @Override
     public Sprite getBackground() {
-        return new Background(new Color(0, 140, 0));
+        return new Green3Background();
     }
 
     @Override
     public List<Block> blocks() {
         List<Block> blocks = new ArrayList<>();
 
+        // פירמידה/מדרגות של 6 שורות (כמו המטלה), מתחיל מימין
         int blockW = 50;
-        int blockH = 25;
+        int blockH = 20;
 
-        int rows = 5;
-        int blocksInRow = 10;
+        int rows = 6;
+        int yStart = 100; // מעל הפס האפור, כמו אצלך
+        int startXRight = WIDTH - 20; // קיר ימין
 
-        int startY = 150;
-
+        // צבעים לשורות (אפשר לשנות כדי להתאים בדיוק)
         Color[] rowColors = {
                 Color.GRAY,
                 Color.RED,
                 Color.YELLOW,
                 Color.BLUE,
-                Color.WHITE
+                Color.WHITE,
+                Color.PINK
         };
 
         for (int row = 0; row < rows; row++) {
-            int y = startY + row * blockH;
-            int startX = 800 - 20 - blocksInRow * blockW; // align to the right side (before border)
+            int blocksInRow = 10 - row; // 10,9,8,7,6,5 (מדרגות)
+            int y = yStart + row * blockH;
 
+            // ממלאים מימין לשמאל
             for (int i = 0; i < blocksInRow; i++) {
-                int x = startX + i * blockW;
-                Block b = new Block(new Rectangle(new Point(x, y), blockW, blockH), rowColors[row]);
+                int x = startXRight - (i + 1) * blockW; // עוד בלוק אחד שמאלה כל פעם
+                Block b = new Block(
+                        new Rectangle(new Point(x, y), blockW, blockH),
+                        rowColors[row % rowColors.length]
+                );
                 blocks.add(b);
             }
         }
@@ -81,6 +93,6 @@ public class Green3 implements LevelInformation {
 
     @Override
     public int numberOfBlocksToRemove() {
-        return 5 * 10;
+        return blocks().size();
     }
 }

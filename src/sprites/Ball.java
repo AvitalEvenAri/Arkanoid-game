@@ -77,6 +77,11 @@ public class Ball implements Sprite {
     public void drawOn(DrawSurface surface) {
         surface.setColor(this.color);
         surface.fillCircle(this.getX(), this.getY(), this.radius);
+
+
+        surface.setColor(Color.BLACK);
+        surface.drawCircle((int) this.center.getX(), (int) this.center.getY(), this.radius);
+
     }
 
     // === sprites.Sprite: timePassed ===

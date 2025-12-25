@@ -12,6 +12,9 @@ import java.util.List;
 
 public class WideEasy implements LevelInformation {
 
+    private static final int WIDTH = 800;
+    private static final int HEIGHT = 600;
+
     @Override
     public int numberOfBalls() {
         return 10;
@@ -19,29 +22,26 @@ public class WideEasy implements LevelInformation {
 
     @Override
     public List<Velocity> initialBallVelocities() {
-        List<Velocity> v = new ArrayList<>();
-        // 10 balls, different angles
-        v.add(new Velocity(-5, -3));
-        v.add(new Velocity(-4, -4));
-        v.add(new Velocity(-3, -5));
-        v.add(new Velocity(-2, -5));
-        v.add(new Velocity(-1, -5));
-        v.add(new Velocity(1, -5));
-        v.add(new Velocity(2, -5));
-        v.add(new Velocity(3, -5));
-        v.add(new Velocity(4, -4));
-        v.add(new Velocity(5, -3));
-        return v;
+        List<Velocity> velocities = new ArrayList<>();
+
+        // קשת של כדורים: זוויות מ- -50 עד +50, מהירות קבועה 5
+        int count = numberOfBalls();
+        for (int i = 0; i < count; i++) {
+            double angle = -50 + (100.0 * i) / (count - 1); // -50..+50
+            velocities.add(Velocity.fromAngleAndSpeed(angle, 5));
+        }
+
+        return velocities;
     }
 
     @Override
     public int paddleSpeed() {
-        return 6;
+        return 7;
     }
 
     @Override
     public int paddleWidth() {
-        return 600;
+        return 600; // משוט רחב מאוד כמו בתמונה
     }
 
     @Override
@@ -51,30 +51,32 @@ public class WideEasy implements LevelInformation {
 
     @Override
     public Sprite getBackground() {
-        return new Background(Color.WHITE);
+        return new WideEasyBackground();
     }
 
     @Override
     public List<Block> blocks() {
         List<Block> blocks = new ArrayList<>();
 
-        int y = 250;
+        // שורה אחת ארוכה של בלוקים צבעוניים
         int blockW = 50;
-        int blockH = 25;
+        int blockH = 20;
 
-        // 15 blocks across the screen (between borders 20..780)
-        int startX = 20;
+        int y = 250;          // גובה בערך כמו בתמונה (מתחת לשמש)
+        int startX = 20;      // אחרי הקיר השמאלי (20px)
+
+        // 15 בלוקים של 50px -> 750px, נכנס יפה בין 20..770
         Color[] colors = {
                 Color.RED, Color.RED,
                 Color.ORANGE, Color.ORANGE,
-                Color.YELLOW, Color.YELLOW,
+                Color.YELLOW, Color.YELLOW, Color.YELLOW,
                 Color.GREEN, Color.GREEN, Color.GREEN,
                 Color.BLUE, Color.BLUE,
                 Color.PINK, Color.PINK,
-                Color.CYAN, Color.CYAN
+                Color.CYAN
         };
 
-        for (int i = 0; i < 15; i++) {
+        for (int i = 0; i < colors.length; i++) {
             int x = startX + i * blockW;
             Block b = new Block(new Rectangle(new Point(x, y), blockW, blockH), colors[i]);
             blocks.add(b);
@@ -85,6 +87,6 @@ public class WideEasy implements LevelInformation {
 
     @Override
     public int numberOfBlocksToRemove() {
-        return 15;
+        return blocks().size();
     }
 }

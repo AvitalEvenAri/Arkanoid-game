@@ -12,6 +12,9 @@ import java.util.List;
 
 public class DirectHit implements LevelInformation {
 
+    private static final int WIDTH = 800;
+    private static final int HEIGHT = 600;
+
     @Override
     public int numberOfBalls() {
         return 1;
@@ -20,7 +23,12 @@ public class DirectHit implements LevelInformation {
     @Override
     public List<Velocity> initialBallVelocities() {
         List<Velocity> v = new ArrayList<>();
-        // straight up (towards the single block)
+
+        /*
+         * המטרה: שהכדור יטוס "ישר" למעלה לכיוון הבלוק היחיד.
+         * dx=0 => אין תנועה ימינה/שמאלה
+         * dy שלילי => עולה למעלה
+         */
         v.add(new Velocity(0, -5));
         return v;
     }
@@ -42,7 +50,8 @@ public class DirectHit implements LevelInformation {
 
     @Override
     public Sprite getBackground() {
-        return new Background(Color.BLACK);
+        // רקע כמו בתמונה: שחור + עיגולים/מטרה כחולים
+        return new DirectHitBackground();
     }
 
     @Override
@@ -52,13 +61,20 @@ public class DirectHit implements LevelInformation {
         int blockW = 40;
         int blockH = 40;
 
-        // Center block near top
-        int x = (800 - blockW) / 2;
+        /*
+         * ממקמים את הבלוק במרכז המסך מבחינת X.
+         * מבחינת Y שמים אותו באזור העליון, בערך כמו בתמונה.
+         * (אם תרצי להזיז עוד קצת למעלה/למטה, תשני את y)
+         */
+        int x = (WIDTH - blockW) / 2;
         int y = 120;
 
-        Block b = new Block(new Rectangle(new Point(x, y), blockW, blockH), Color.RED);
-        blocks.add(b);
+        Block b = new Block(
+                new Rectangle(new Point(x, y), blockW, blockH),
+                Color.RED
+        );
 
+        blocks.add(b);
         return blocks;
     }
 

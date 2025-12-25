@@ -12,6 +12,9 @@ import java.util.List;
 
 public class FinalFour implements LevelInformation {
 
+    private static final int WIDTH = 800;
+    private static final int HEIGHT = 600;
+
     @Override
     public int numberOfBalls() {
         return 3;
@@ -20,9 +23,12 @@ public class FinalFour implements LevelInformation {
     @Override
     public List<Velocity> initialBallVelocities() {
         List<Velocity> v = new ArrayList<>();
-        v.add(new Velocity(-4, -4));
-        v.add(new Velocity(0, -5));
-        v.add(new Velocity(4, -4));
+
+        // 3 כדורים: אחד ישר, שניים לצדדים
+        v.add(Velocity.fromAngleAndSpeed(0, 6));
+        v.add(Velocity.fromAngleAndSpeed(-25, 6));
+        v.add(Velocity.fromAngleAndSpeed(25, 6));
+
         return v;
     }
 
@@ -33,7 +39,7 @@ public class FinalFour implements LevelInformation {
 
     @Override
     public int paddleWidth() {
-        return 120;
+        return 80;
     }
 
     @Override
@@ -43,22 +49,24 @@ public class FinalFour implements LevelInformation {
 
     @Override
     public Sprite getBackground() {
-        return new Background(new Color(30, 144, 255));
+        return new FinalFourBackground();
     }
 
     @Override
     public List<Block> blocks() {
         List<Block> blocks = new ArrayList<>();
 
+        // רשת של בלוקים: הרבה שורות, צבע לכל שורה
         int blockW = 50;
-        int blockH = 25;
+        int blockH = 20;
 
         int rows = 7;
-        int blocksPerRow = 15;
+        int cols = 15; // 15*50=750 נכנס בין הקירות (20..770)
 
-        int startY = 100;
+        int startX = 20;  // אחרי הקיר השמאלי
+        int startY = 100; // מתחת לפס האפור
 
-        Color[] colors = {
+        Color[] rowColors = {
                 Color.GRAY,
                 Color.RED,
                 Color.YELLOW,
@@ -70,11 +78,16 @@ public class FinalFour implements LevelInformation {
 
         for (int row = 0; row < rows; row++) {
             int y = startY + row * blockH;
-            int startX = 20; // from left border
+            Color c = rowColors[row % rowColors.length];
 
-            for (int i = 0; i < blocksPerRow; i++) {
-                int x = startX + i * blockW;
-                Block b = new Block(new Rectangle(new Point(x, y), blockW, blockH), colors[row]);
+            for (int col = 0; col < cols; col++) {
+                int x = startX + col * blockW;
+
+                Block b = new Block(
+                        new Rectangle(new Point(x, y), blockW, blockH),
+                        c
+                );
+
                 blocks.add(b);
             }
         }
@@ -84,6 +97,6 @@ public class FinalFour implements LevelInformation {
 
     @Override
     public int numberOfBlocksToRemove() {
-        return 7 * 15;
+        return blocks().size();
     }
 }
