@@ -1,6 +1,9 @@
 package game;
 
 import animation.AnimationRunner;
+import animation.EndScreen;
+import animation.KeyPressStoppableAnimation;
+import biuoop.GUI;
 import biuoop.KeyboardSensor;
 import levels.LevelInformation;
 
@@ -10,38 +13,44 @@ public class GameFlow {
     private final AnimationRunner runner;
     private final KeyboardSensor keyboard;
     private final Counter score;
+    private final GUI gui;
 
-    public GameFlow(AnimationRunner runner, KeyboardSensor keyboard) {
+    public GameFlow(AnimationRunner runner, KeyboardSensor keyboard, GUI gui) {
         this.runner = runner;
         this.keyboard = keyboard;
+        this.gui = gui;
         this.score = new Counter(0);
     }
 
-    public Counter getScore() {
-        return this.score;
-    }
-
     public void runLevels(List<LevelInformation> levels) {
+        boolean won = true; // נניח שננצח, ואם נפסיד נשנה ל-false
+
         for (LevelInformation info : levels) {
-
-            // 1) create level
             GameLevel level = new GameLevel(info, this.keyboard, this.runner, this.score);
-
-            // 2) build objects according to level
             level.initialize();
 
-            // 3) run the level ONCE (GameLevel.run() already loops internally until stop)
-            level.run();
-
-            // 4) if lost (no balls) -> end whole game
-            if (level.getRemainingBalls() == 0) {
-                // TODO later: show Game Over screen
-                return;
+            // מריצים את השלב עד שייגמר (בלוקים או כדורים)
+            while (level.getRemainingBlocks() > 0 && level.getRemainingBalls() > 0) {
+                level.run();
             }
 
-            // 5) else: cleared blocks -> for-loop continues to next level
+            // אם אין כדורים - הפסד, נגמר המשחק
+            if (level.getRemainingBalls() == 0) {
+                won = false;
+                break;
+            }
         }
 
-        // TODO later: show You Win screen
+        // בסוף: להציג EndScreen בהתאם ל-won
+        EndScreen end = new EndScreen(won, this.score);
+
+        // לעטוף כדי שייסגר רק אחרי SPACE
+        KeyPressStoppableAnimation endWithKey =
+                new KeyPressStoppableAnimation(this.keyboard, KeyboardSensor.SPACE_KEY, end);
+
+        this.runner.run(endWithKey);
+
+        // אחרי שלחצו SPACE -> לסיים תוכנה
+        this.gui.close();
     }
 }
