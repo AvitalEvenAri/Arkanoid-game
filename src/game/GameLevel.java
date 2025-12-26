@@ -167,7 +167,8 @@ public class GameLevel implements Animation {
 
         // 7) Indicators (always visible)
         this.addSprite(new ScoreIndicator(this.score));
-        // Level name indicator (אם כבר יש אצלך מחלקה) צריך להוסיף כאן.
+        this.addSprite(new indicators.LevelNameIndicator(this.levelInfo.levelName()));
+
     }
 
     // --- Animation interface ---
