@@ -32,6 +32,6 @@ public class EndScreen implements Animation {
 
     @Override
     public boolean shouldStop() {
-        return false; // runs forever, decorator stops it
+        return false; // decorator stops it
     }
 }

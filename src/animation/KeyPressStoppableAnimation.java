@@ -3,51 +3,44 @@ package animation;
 import biuoop.DrawSurface;
 import biuoop.KeyboardSensor;
 
-/**
- * A decorator Animation that stops when a specific key is pressed.
- * Fixes the "same press closes next animation" bug using isAlreadyPressed.
- */
 public class KeyPressStoppableAnimation implements Animation {
-
-    private final KeyboardSensor sensor;
+    private final KeyboardSensor keyboard;
     private final String key;
     private final Animation animation;
 
     private boolean stop;
-    private boolean isAlreadyPressed;
 
-    public KeyPressStoppableAnimation(KeyboardSensor sensor, String key, Animation animation) {
-        this.sensor = sensor;
+    // מספר פריימים להתעלמות בתחילת המסך (כדי לא לסגור מיד)
+    private int framesToIgnore;
+
+    public KeyPressStoppableAnimation(KeyboardSensor keyboard, String key, Animation animation) {
+        this.keyboard = keyboard;
         this.key = key;
         this.animation = animation;
-
         this.stop = false;
-        this.isAlreadyPressed = true; // critical bug-fix: ignore key if it was already down
+
+        // בערך 0.25 שניות ב-60 FPS
+        this.framesToIgnore = 15;
     }
 
     @Override
     public void doOneFrame(DrawSurface d) {
-        // 1) draw the wrapped animation
-        this.animation.doOneFrame(d);
+        animation.doOneFrame(d);
 
-        // 2) bug fix logic:
-        // if key is currently NOT pressed, we can allow stopping on next press
-        if (!this.sensor.isPressed(this.key)) {
-            this.isAlreadyPressed = false;
+        // מתעלמים מהפריימים הראשונים כדי "לנקות" מעבר מסך
+        if (framesToIgnore > 0) {
+            framesToIgnore--;
             return;
         }
 
-        // 3) if key is pressed but it was already pressed when animation started -> ignore
-        if (this.isAlreadyPressed) {
-            return;
+        // אחרי ההמתנה הקצרה: כל לחיצה על המקש עוצרת
+        if (keyboard.isPressed(key)) {
+            stop = true;
         }
-
-        // 4) key is pressed AND it was not pressed earlier during this animation -> stop
-        this.stop = true;
     }
 
     @Override
     public boolean shouldStop() {
-        return this.stop;
+        return stop;
     }
 }

@@ -11,22 +11,54 @@ import listeners.HitNotifier;
 
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Block implements Collidable, Sprite, HitNotifier {
 
     private Rectangle rectangle;
-    private Color color;
-    private List<HitListener> hitListeners = new ArrayList<>();
+
+    // hit points
+    private int hitPoints;
+
+    // fill per hit-points (1..hitPoints)
+    private final Map<Integer, BlockFill> fillsByHp;
+
+    // optional stroke (border). null = no border
+    private final Color strokeColor;
+
+    private final List<HitListener> hitListeners = new ArrayList<>();
     private static final double EPS = 1e-7;
 
+    /**
+     * Constructor for the new IO-based blocks.
+     */
+    public Block(Rectangle rect, int hitPoints, Map<Integer, BlockFill> fillsByHp, Color strokeColor) {
+        this.rectangle = rect;
+        this.hitPoints = hitPoints;
+        this.fillsByHp = new HashMap<>(fillsByHp);
+        this.strokeColor = strokeColor;
+    }
+
+    /**
+     * Backward-compatible constructor: one color block with 1 hit-point and black border.
+     * (Keeps your old code working.)
+     */
     public Block(Rectangle rect, Color color) {
         this.rectangle = rect;
-        this.color = color;
+        this.hitPoints = 1;
+        this.fillsByHp = new HashMap<>();
+        this.fillsByHp.put(1, new ColorFill(color));
+        this.strokeColor = Color.BLACK; // matches your old drawRectangle black
     }
 
     public Block(Rectangle rect) {
         this(rect, Color.GRAY);
+    }
+
+    public int getHitPoints() {
+        return this.hitPoints;
     }
 
     @Override
@@ -44,7 +76,6 @@ public class Block implements Collidable, Sprite, HitNotifier {
         double topY = rectangle.getUpperLeft().getY();
         double bottomY = topY + rectangle.getHeight();
 
-        // Check which side was hit
         boolean hitLeft = Math.abs(collisionPoint.getX() - leftX) < EPS;
         boolean hitRight = Math.abs(collisionPoint.getX() - rightX) < EPS;
         boolean hitTop = Math.abs(collisionPoint.getY() - topY) < EPS;
@@ -57,18 +88,19 @@ public class Block implements Collidable, Sprite, HitNotifier {
             dy = -dy;
         }
 
-        // Notify listeners about the hit
+        // Decrease hit points (if still positive)
+        if (this.hitPoints > 0) {
+            this.hitPoints--;
+        }
+
+        // Notify listeners about the hit (after hp decrease)
         this.notifyHit(hitter);
 
         return new Velocity(dx, dy);
     }
 
     private void notifyHit(Ball hitter) {
-        // CRITICAL FIX: Make a copy of the hitListeners before iterating.
-        // This is needed because a listener (like BlockRemover) might remove
-        // itself from the list inside the loop.
         List<HitListener> listenersCopy = new ArrayList<>(this.hitListeners);
-
         for (HitListener hl : listenersCopy) {
             hl.hitEvent(this, hitter);
         }
@@ -81,15 +113,28 @@ public class Block implements Collidable, Sprite, HitNotifier {
         int w = (int) rectangle.getWidth();
         int h = (int) rectangle.getHeight();
 
-        d.setColor(this.color);
-        d.fillRectangle(x, y, w, h);
-        d.setColor(Color.BLACK);
-        d.drawRectangle(x, y, w, h);
+        // Choose fill by current hit-points (if 0, use 1 as fallback)
+        int key = Math.max(this.hitPoints, 1);
+
+        BlockFill fill = fillsByHp.get(key);
+        if (fill == null) {
+            // fallback: try fill-1
+            fill = fillsByHp.get(1);
+        }
+        if (fill != null) {
+            fill.fill(d, x, y, w, h);
+        }
+
+        // draw stroke if exists
+        if (strokeColor != null) {
+            d.setColor(strokeColor);
+            d.drawRectangle(x, y, w, h);
+        }
     }
 
     @Override
     public void timePassed() {
-        // Currently does nothing
+        // no-op
     }
 
     public void addToGame(GameLevel g) {

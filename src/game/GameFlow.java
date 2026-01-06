@@ -1,4 +1,5 @@
 package game;
+import java.io.File;
 
 import animation.AnimationRunner;
 import animation.EndScreen;
@@ -6,7 +7,7 @@ import animation.KeyPressStoppableAnimation;
 import biuoop.GUI;
 import biuoop.KeyboardSensor;
 import levels.LevelInformation;
-
+import highscores.HighScoresTable;
 import java.util.List;
 
 public class GameFlow {
@@ -41,16 +42,41 @@ public class GameFlow {
             }
         }
 
-        // בסוף: להציג EndScreen בהתאם ל-won
         EndScreen end = new EndScreen(won, this.score);
-
-        // לעטוף כדי שייסגר רק אחרי SPACE
         KeyPressStoppableAnimation endWithKey =
                 new KeyPressStoppableAnimation(this.keyboard, KeyboardSensor.SPACE_KEY, end);
-
         this.runner.run(endWithKey);
 
-        // אחרי שלחצו SPACE -> לסיים תוכנה
+
+
+
+// Part 1: update highest score in highscores.txt
+        HighScoresTable table = new HighScoresTable();
+
+// נבדוק אם זו הרצה ראשונה (אין קובץ עדיין)
+        File f = new File("highscores.txt");
+        boolean firstRun = !f.exists();
+
+// טוענים שיא קודם (אם אין קובץ -> table יחזיק 0)
+        table.loadFromFile();
+
+// הניקוד של המשחק הנוכחי
+        int currentScore = this.score.getValue();
+
+// אם זו הרצה ראשונה: יוצרים את הקובץ בכל מקרה (גם אם 0)
+// אחרת: מעדכנים רק אם נשבר שיא
+        if (firstRun) {
+            table.updateIfHigher(currentScore);
+            table.saveToFile();
+        } else {
+            boolean updated = table.updateIfHigher(currentScore);
+            if (updated) {
+                table.saveToFile();
+            }
+        }
+
         this.gui.close();
-    }
+
+
 }
+    }
